@@ -299,29 +299,36 @@
   \end{frame}%
 }
 
-% -- Section divider page: the panel with the mini-TOC.
-\NewDocumentCommand \sectionpage { } {%
-  \trantor@panel{\linewidth}{%
-    \setcounter{tocdepth}{1}%
-    \colorlet{structure}{TrantorLight}%
-    \setlength{\parskip}{1.2em}%   spacing between TOC entries
-    \headerfont\Large
-    \tableofcontents
-  }%
+% -- Divider pages: the section title over a progress bar, set on the ordinary
+% light background. Not plain pages: the footer bar and frame number stay.
+\NewDocumentCommand \trantor@divider { +m } {%
+  \begin{frame}{}%
+    \thispagestyle{plain}%
+    \vfill
+    \centering
+    \begin{minipage}{0.52\linewidth}%
+      \raggedright
+      {\headerfont\Large\bfseries\trantorSectionTitle\par}%
+      \vspace{0.4em}%
+      \trantorProgressBar{\linewidth}%
+      #1%
+    \end{minipage}%
+    \par
+    \vfill
+  \end{frame}%
 }
 
-% -- Subsection divider page: the section title above the subsection it
-% introduces.
+\NewDocumentCommand \sectionpage { } { \trantor@divider{} }
+
+% The subsection divider is the same, naming the subsection under the bar.
 \NewDocumentCommand \subsectionpage { } {%
-  \trantor@panel{0.8\linewidth}{%
-    \headerfont
-    {\large\trantorSectionTitle\par}
-    \vspace{0.7em}
-    {\LARGE\bfseries\trantorSubsectionTitle\par}
+  \trantor@divider{%
+    \par\vspace{0.8em}%
+    {\headerfont\large\bfseries\trantorSubsectionTitle\par}%
   }%
 }
 
-% \standout{...}: the panel with the given text centred on it.
+% \standout{...}: a full-bleed dark panel with the given text centred on it.
 \NewDocumentCommand \standout { +m } {%
   \trantor@panel{0.8\linewidth}{\headerfont\LARGE\bfseries #1}%
 }
