@@ -94,12 +94,41 @@
   \href{https://arxiv.org/abs/#1}{{\headerfont\scriptsize\color{TrantorMuted}arXiv:#1}}%
 }
 
+% -- \appendix: frames after it are numbered among themselves and left out of
+% the total. The count travels through the aux file, so it settles on the
+% second run.
+\newif\iftrantorAppendix
+\trantorAppendixfalse
+\newcommand\trantorMainFrames{\@totalframes}
+
+\NewDocumentCommand \appendix { } {%
+  \global\trantorAppendixtrue
+  \protected@write\@auxout{}{%
+    \string\gdef\string\trantorMainFrames{\the\value{frame}}}%
+}
+
+% Count registers, not macros: pgfmath expands while parsing, and a macro
+% carrying a conditional loops.
+\newcount\trantor@n
+\newcount\trantor@d
+
+\newcommand\trantor@setcounts{%
+  \iftrantorAppendix
+    \trantor@n=\numexpr\value{frame}-\trantorMainFrames\relax
+    \trantor@d=\numexpr\@totalframes-\trantorMainFrames\relax
+  \else
+    \trantor@n=\value{frame}\relax
+    \trantor@d=\numexpr\trantorMainFrames\relax
+  \fi
+}
+
 % Fraction of the way through the talk, shared by the footer bar and
 % \trantorProgressBar. The zero test must stay outside pgfmath, which
 % evaluates both arms of a ternary.
 \newcommand\trantor@setratio{%
-  \ifnum\numexpr\@totalframes\relax>0
-    \pgfmathsetmacro{\trantorratio}{min(\theframe / \@totalframes, 1)}%
+  \trantor@setcounts
+  \ifnum\trantor@d>0
+    \pgfmathsetmacro{\trantorratio}{min(\the\trantor@n / \the\trantor@d, 1)}%
   \else
     \def\trantorratio{0}%
   \fi
@@ -134,7 +163,7 @@
       rectangle
       ([xshift=\trantorratio\paperwidth, yshift=1pt] current page.south west);
     \node[anchor=south east, inner sep=5pt, font=\tiny, text=TrantorDark]
-      at (current page.south east) {\theframe\,/\,\@totalframes};
+      at (current page.south east) {\the\trantor@n\,/\,\the\trantor@d};
   \end{tikzpicture}%
   \trantorArtifactEnd
   \fi
