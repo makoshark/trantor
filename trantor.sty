@@ -49,12 +49,14 @@
 \AddToHook{begindocument}{\colorlet{structure}{TrantorDark}}
 
 % -- Header bar carrying the frame title (hidden on plain pages).
+% headsep is what pads under the title; the height key alone only pads above.
+\geometry{headsep=10pt}
 \AddToHook{begindocument}{%
   \EditInstance{header}{std}{
-    background-color  = TrantorLight,
-    color             = TrantorDark,
+    background-color  = TrantorDark,
+    color             = TrantorLight,
     print-frame-title = true,
-    height            = 30pt,
+    height            = 40pt,
     font              = \headerfont\bfseries,
     left-hspace       = \dimexpr\Gm@lmargin - 0.6cm\relax,
   }%
