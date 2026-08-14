@@ -170,6 +170,10 @@
     \begin{minipage}{0.82\paperwidth}
       \raggedright
       {\color{TrantorDark}\headerfont\Large\bfseries \@title\par}%
+      \ifx\@subtitle\empty\else
+        \vspace{0.35em}%
+        {\color{TrantorDark}\headerfont\large \@subtitle\par}%
+      \fi
       \vspace{0.5em}%
       {\color{TrantorAccent}\rule{\linewidth}{0.8pt}\par}%
       \vspace{1.3em}%
