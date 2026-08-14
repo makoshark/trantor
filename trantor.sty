@@ -32,20 +32,27 @@
 
 % -- Colours. Set your own accent anywhere in the preamble with, e.g.,
 %      \definecolor{accent}{HTML}{BF1238}
+%      \definecolor{TrantorDark}{HTML}{23373B}
+% Four colour palette:
+%   1. accent       progress bars, title rule
+%   2. TrantorDark  headings, section dividers, standout panels, frame numbers
+%   3. TrantorLight text set against TrantorDark
+%   4. TrantorMuted affiliation, footline, arxiv. Lightest grey that still meets
+%                   WCAG AA contrast (4.5:1) on white (~4.54:1).
 \providecolor{accent}{HTML}{2A7AE2}
-\colorlet{TrantorDark}{black}
-% Lightest grey that still meets WCAG AA contrast (4.5:1) on white (~4.54:1).
-\definecolor{TrantorMuted}{HTML}{767676}  % affiliation, footline, arxiv
+\providecolor{TrantorDark}{HTML}{000000}
+\providecolor{TrantorLight}{HTML}{FFFFFF}
+\providecolor{TrantorMuted}{HTML}{767676}
 \AddToHook{begindocument}{\colorlet{TrantorAccent}{accent}}
 
-% itemize/enumerate labels in black rather than the class default
-\AddToHook{begindocument}{\colorlet{structure}{black}}
+% itemize/enumerate labels in the body colour rather than the class default
+\AddToHook{begindocument}{\colorlet{structure}{TrantorDark}}
 
 % -- Header bar carrying the frame title (hidden on plain pages).
 \AddToHook{begindocument}{%
   \EditInstance{header}{std}{
-    background-color  = white,
-    color             = black,
+    background-color  = TrantorLight,
+    color             = TrantorDark,
     print-frame-title = true,
     height            = 30pt,
     font              = \headerfont\bfseries,
@@ -212,12 +219,12 @@
         (-\Gm@lmargin, \paperheight)
         rectangle
         (\dimexpr\paperwidth-\Gm@lmargin\relax, -\paperheight);
-      \node[text=white, anchor=center, inner sep=0pt]
+      \node[text=TrantorLight, anchor=center, inner sep=0pt]
         at (0.5\linewidth, -0.5\textheight) {%
         \begin{minipage}{\linewidth}
           \centering
           \setcounter{tocdepth}{1}%
-          \colorlet{structure}{white}%
+          \colorlet{structure}{TrantorLight}%
           \setlength{\parskip}{1.2em}%   spacing between TOC entries
           \headerfont\Large
           \tableofcontents
@@ -240,7 +247,7 @@
         (-\Gm@lmargin, \paperheight)
         rectangle
         (\dimexpr\paperwidth-\Gm@lmargin\relax, -\paperheight);
-      \node[text=white, anchor=center, inner sep=0pt]
+      \node[text=TrantorLight, anchor=center, inner sep=0pt]
         at (0.5\linewidth, -0.5\textheight) {%
         \begin{minipage}{0.8\linewidth}
           \centering
