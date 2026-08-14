@@ -94,6 +94,32 @@
   \href{https://arxiv.org/abs/#1}{{\headerfont\scriptsize\color{TrantorMuted}arXiv:#1}}%
 }
 
+% Fraction of the way through the talk, shared by the footer bar and
+% \trantorProgressBar. The zero test must stay outside pgfmath, which
+% evaluates both arms of a ternary.
+\newcommand\trantor@setratio{%
+  \ifnum\numexpr\@totalframes\relax>0
+    \pgfmathsetmacro{\trantorratio}{min(\theframe / \@totalframes, 1)}%
+  \else
+    \def\trantorratio{0}%
+  \fi
+}
+
+% \trantorProgressBar{<width>}: a rule of the given width, filled to the
+% current position and grey the rest of the way.
+\newlength\trantor@barwidth
+\newlength\trantor@barfill
+
+\NewDocumentCommand \trantorProgressBar { m } {%
+  \setlength\trantor@barwidth{#1}%
+  \trantor@setratio
+  % dimen = <factor><dimen>, so \trantorratio scales the width
+  \setlength\trantor@barfill{\trantorratio\trantor@barwidth}%
+  \textcolor{TrantorAccent}{\rule{\trantor@barfill}{0.6pt}}%
+  \textcolor{TrantorDark!20}{%
+    \rule{\dimexpr\trantor@barwidth-\trantor@barfill\relax}{0.6pt}}%
+}
+
 % -- Bottom progress bar + frame counter (hidden on plain pages).
 \newif\iftrantorPlainPage
 \trantorPlainPagefalse
@@ -102,11 +128,7 @@
   \iftrantorPlainPage\else
   \trantorArtifactBegin
   \begin{tikzpicture}[remember picture, overlay]
-    \ifnum\numexpr\@totalframes\relax>0
-      \pgfmathsetmacro{\trantorratio}{\theframe / \@totalframes}%
-    \else
-      \def\trantorratio{0}%
-    \fi
+    \trantor@setratio
     \fill[TrantorAccent]
       (current page.south west)
       rectangle
