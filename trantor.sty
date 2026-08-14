@@ -183,6 +183,21 @@
 \cs_new_protected:Npn \__trantor_print_section: { \tl_use:N \g__trantor_section_tl }
 \cs_set_eq:NN \trantorSectionTitle \__trantor_print_section:
 
+% Likewise the subsection, for \subsectionpage. Cleared when a new section
+% starts so a stale title cannot leak into the next one.
+\tl_new:N \g__trantor_subsection_tl
+
+\AddToHook{section/begin}{ \tl_gclear:N \g__trantor_subsection_tl }
+
+\AddToHook{subsection/begin}{
+  \cs_if_exist:NT \l__talk_subsection_tl {
+    \tl_gset:NV \g__trantor_subsection_tl \l__talk_subsection_tl
+  }
+}
+
+\cs_new_protected:Npn \__trantor_print_subsection: { \tl_use:N \g__trantor_subsection_tl }
+\cs_set_eq:NN \trantorSubsectionTitle \__trantor_print_subsection:
+
 % Suspend tagging around the theme's decorative / pagination graphics when
 % tagging is on (a no-op otherwise), so the progress bar and frame counter stay
 % out of the structure tree instead of being flagged as loose content.
@@ -258,8 +273,9 @@
   \end{frame}%
 }
 
-% -- Section divider page (dark full-bleed panel with the mini-TOC).
-\NewDocumentCommand \sectionpage { } {%
+% -- A full-bleed dark panel with the given body centred in a minipage of the
+% given width.
+\NewDocumentCommand \trantor@panel { m +m } {%
   \global\trantorPlainPagetrue
   \begin{frame}{}%
     \thispagestyle{plain}%
@@ -272,42 +288,40 @@
         (\dimexpr\paperwidth-\Gm@lmargin\relax, -\paperheight);
       \node[text=TrantorLight, anchor=center, inner sep=0pt]
         at (0.5\linewidth, -0.5\textheight) {%
-        \begin{minipage}{\linewidth}
+        \begin{minipage}{#1}
           \centering
-          \setcounter{tocdepth}{1}%
-          \colorlet{structure}{TrantorLight}%
-          \setlength{\parskip}{1.2em}%   spacing between TOC entries
-          \headerfont\Large
-          \tableofcontents
+          #2
         \end{minipage}%
       };
     \end{tikzpicture}%
   \end{frame}%
 }
 
-% \standout{...}: a full frame with the same dark panel as \sectionpage,
-% and the given text centred on it.
+% -- Section divider page: the panel with the mini-TOC.
+\NewDocumentCommand \sectionpage { } {%
+  \trantor@panel{\linewidth}{%
+    \setcounter{tocdepth}{1}%
+    \colorlet{structure}{TrantorLight}%
+    \setlength{\parskip}{1.2em}%   spacing between TOC entries
+    \headerfont\Large
+    \tableofcontents
+  }%
+}
+
+% -- Subsection divider page: the section title above the subsection it
+% introduces.
+\NewDocumentCommand \subsectionpage { } {%
+  \trantor@panel{0.8\linewidth}{%
+    \headerfont
+    {\large\trantorSectionTitle\par}
+    \vspace{0.7em}
+    {\LARGE\bfseries\trantorSubsectionTitle\par}
+  }%
+}
+
+% \standout{...}: the panel with the given text centred on it.
 \NewDocumentCommand \standout { +m } {%
-  \global\trantorPlainPagetrue
-  \begin{frame}{}%
-    \thispagestyle{plain}%
-    \noindent
-    \begin{tikzpicture}
-      \useasboundingbox (0,0) rectangle (\linewidth,-\textheight);
-      \fill[TrantorDark]
-        (-\Gm@lmargin, \paperheight)
-        rectangle
-        (\dimexpr\paperwidth-\Gm@lmargin\relax, -\paperheight);
-      \node[text=TrantorLight, anchor=center, inner sep=0pt]
-        at (0.5\linewidth, -0.5\textheight) {%
-        \begin{minipage}{0.8\linewidth}
-          \centering
-          \headerfont\LARGE\bfseries
-          #1
-        \end{minipage}%
-      };
-    \end{tikzpicture}%
-  \end{frame}%
+  \trantor@panel{0.8\linewidth}{\headerfont\LARGE\bfseries #1}%
 }
 
 \makeatother
