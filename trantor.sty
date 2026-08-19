@@ -314,7 +314,9 @@
       \end{minipage}%
     \end{minipage}%
     \hspace*{0.04\paperwidth}%
-    \vspace{0.12\paperheight}%
+    % shrinkable, so a long author block compresses this space instead of
+    % overfilling the fixed frame height
+    \vspace{0.12\paperheight minus 0.08\paperheight}%
   }%
 }
 
