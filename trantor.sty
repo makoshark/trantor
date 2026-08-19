@@ -142,6 +142,8 @@
 % -- \appendix: frames after it are numbered among themselves and left out of
 % the total. The count travels through the aux file, so it settles on the
 % second run.
+% ltx-talk gained its own \appendix upstream after 0.3.12; once a release
+% ships it, revisit this in favour of the class's version.
 \newif\iftrantorAppendix
 \trantorAppendixfalse
 \newcommand\trantorMainFrames{\@totalframes}
@@ -150,6 +152,30 @@
   \global\trantorAppendixtrue
   \protected@write\@auxout{}{%
     \string\gdef\string\trantorMainFrames{\the\value{frame}}}%
+  \protected@write\@auxout{}{%
+    \string\gdef\string\trantorMainPanels{\the\value{trantorpanels}}}%
+}
+
+% -- Panels (standout pages) stay out of the frame numbering, as under
+% metropolis, which set noframenumbering on standout frames. The class's frame
+% counter cannot be touched -- notes and property records key on it -- so the
+% panels are counted separately and subtracted for display. The totals travel
+% through the aux file like \trantorMainFrames does.
+\newcounter{trantorpanels}
+\newcounter{trantorpanellast}
+\newcommand\trantorTotalPanels{0}
+\newcommand\trantorMainPanels{\trantorTotalPanels}
+% \immediate: a deferred write would wait for a shipout that never comes.
+\AtEndDocument{%
+  \immediate\write\@auxout{%
+    \string\gdef\string\trantorTotalPanels{\the\value{trantorpanels}}}%
+}
+% Count each panel frame once, though the body may run once per slide.
+\newcommand\trantor@countpanel{%
+  \ifnum\value{trantorpanellast}=\value{frame}\else
+    \stepcounter{trantorpanels}% \stepcounter and \setcounter act globally
+    \setcounter{trantorpanellast}{\value{frame}}%
+  \fi
 }
 
 % Count registers, not macros: pgfmath expands while parsing, and a macro
@@ -159,11 +185,13 @@
 
 \newcommand\trantor@setcounts{%
   \iftrantorAppendix
-    \trantor@n=\numexpr\value{frame}-\trantorMainFrames\relax
-    \trantor@d=\numexpr\@totalframes-\trantorMainFrames\relax
+    \trantor@n=\numexpr\value{frame}-\trantorMainFrames
+      -\value{trantorpanels}+\trantorMainPanels\relax
+    \trantor@d=\numexpr\@totalframes-\trantorMainFrames
+      -\trantorTotalPanels+\trantorMainPanels\relax
   \else
-    \trantor@n=\value{frame}\relax
-    \trantor@d=\numexpr\trantorMainFrames\relax
+    \trantor@n=\numexpr\value{frame}-\value{trantorpanels}\relax
+    \trantor@d=\numexpr\trantorMainFrames-\trantorMainPanels\relax
   \fi
 }
 
@@ -325,6 +353,7 @@
 \NewDocumentCommand \trantor@panel { m +m } {%
   \trantor@inframe{%
     \plainpage
+    \trantor@countpanel
     \noindent
     % overlay=false explicitly: the panel is positioned from its bounding box,
     % so it breaks if the document sets \tikzstyle{every picture}+=[overlay],
