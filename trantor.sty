@@ -253,6 +253,27 @@
 \ExplSyntaxOff
 
 
+% Run #1 inside the current frame if there is one, else inside a fresh frame.
+% Mirrors the class's \maketitle, so a document can wrap any of these in its
+% own frame and add content alongside -- a \note, or \footline for a revision
+% stamp -- following the beamer idiom.
+\ExplSyntaxOn
+\cs_new_protected:Npn \trantor@inframe #1
+  {
+    \bool_if:NTF \l__talk_frame_bool
+      {#1}
+      { \begin { frame } #1 \end { frame } }
+  }
+\ExplSyntaxOff
+
+% \plainpage: suppress the footer progress bar and frame number on the current
+% frame's pages, as the title, standout, and divider pages do. Use it at the
+% top of a frame, e.g. one holding a full-bleed image.
+\NewDocumentCommand\plainpage{}{%
+  \global\trantorPlainPagetrue
+  \thispagestyle{plain}%
+}
+
 % -- Title page. Drop a logo.png next to your slides, or redefine \titlelogo.
 \newcommand{\titlelogo}{%
   \IfFileExists{logo.png}
@@ -260,9 +281,8 @@
 }
 
 \renewcommand{\maketitle}{%
-  \global\trantorPlainPagetrue
-  \begin{frame}{}%
-    \thispagestyle{plain}%
+  \trantor@inframe{%
+    \plainpage
     \vfill
     \hspace*{0.04\paperwidth}%
     \begin{minipage}{0.82\paperwidth}
@@ -295,15 +315,14 @@
     \end{minipage}%
     \hspace*{0.04\paperwidth}%
     \vspace{0.12\paperheight}%
-  \end{frame}%
+  }%
 }
 
 % -- A full-bleed dark panel with the given body centred in a minipage of the
 % given width.
 \NewDocumentCommand \trantor@panel { m +m } {%
-  \global\trantorPlainPagetrue
-  \begin{frame}{}%
-    \thispagestyle{plain}%
+  \trantor@inframe{%
+    \plainpage
     \noindent
     \begin{tikzpicture}
       \useasboundingbox (0,0) rectangle (\linewidth,-\textheight);
@@ -319,13 +338,16 @@
         \end{minipage}%
       };
     \end{tikzpicture}%
-  \end{frame}%
+  }%
 }
 
 % -- Divider pages: the section title over a progress bar, set on the ordinary
 % light background. Not plain pages: the footer bar and frame number stay.
+% Like the class's \maketitle, the dividers work inside a frame the document
+% opened itself, so beamer's \begin{frame}\sectionpage\note{...}\end{frame}
+% idiom carries over. Called between frames, they open their own.
 \NewDocumentCommand \trantor@divider { +m } {%
-  \begin{frame}{}%
+  \trantor@inframe{%
     \thispagestyle{plain}%
     \vfill
     \centering
@@ -338,7 +360,7 @@
     \end{minipage}%
     \par
     \vfill
-  \end{frame}%
+  }%
 }
 
 \NewDocumentCommand \sectionpage { } { \trantor@divider{} }
