@@ -48,6 +48,14 @@
 % itemize/enumerate labels in the body colour rather than the class default
 \AddToHook{begindocument}{\colorlet{structure}{TrantorDark}}
 
+% \alert in the accent colour rather than the class's red, as metropolis
+% coloured alerted text from the theme palette
+\AddToHook{begindocument}{\colorlet{alert}{TrantorAccent}}
+
+% beamer set quotations in italic; ported decks expect it
+\AddToHook{env/quote/begin}{\itshape}
+\AddToHook{env/quotation/begin}{\itshape}
+
 % -- Header bar carrying the frame title (hidden on plain pages).
 % headsep is what pads under the title; the height key alone only pads above.
 \geometry{headsep=10pt}
