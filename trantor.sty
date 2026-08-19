@@ -64,6 +64,41 @@
   \EditInstance{frametitle}{header}{after-vspace = 6mm minus 3mm}%
 }
 
+% -- A frame with no \frametitle gets no header band. ltx-talk draws it
+% unconditionally, which leaves an empty dark slab across the top of every
+% full-bleed image slide. metropolis omitted the bar on untitled frames and
+% decks are written expecting that. \trantorEmptyHeadertrue restores the bar.
+%
+% The band is drawn from \@oddhead, so this replaces \ps@talk; \pagestyle has
+% to be re-issued for the new definition to take.
+\newif\iftrantorEmptyHeader
+\trantorEmptyHeaderfalse
+
+\ExplSyntaxOn
+\cs_new_protected:Npn \trantor@header
+  {
+    \iftrantorEmptyHeader
+      \UseInstance { header } { std }
+    \else
+      % Guard the class internal: a class change should not make this an error.
+      \cs_if_exist:NTF \g__talk_frame_title_tl
+        {
+          \tl_if_empty:NF \g__talk_frame_title_tl
+            { \UseInstance { header } { std } }
+        }
+        { \UseInstance { header } { std } }
+    \fi
+  }
+\cs_set_nopar:Npn \ps@talk
+  {
+    \cs_set_nopar:Npn \@oddhead { \trantor@header \hfil }
+    \cs_set_nopar:Npn \@oddfoot { \UseInstance { footer } { std } }
+    \cs_set_eq:NN \@evenhead \@oddhead
+    \cs_set_eq:NN \@evenfoot \@oddfoot
+  }
+\ExplSyntaxOff
+\pagestyle{talk}
+
 % Like \frametitle, but forces a gap below the title on packed slides where the
 % header's own spacing collapses. The \par gets us into vertical mode first.
 \NewDocumentCommand\stitle{m}{\frametitle{#1}\par\addvspace{4mm}}
