@@ -324,7 +324,10 @@
   \trantor@inframe{%
     \plainpage
     \noindent
-    \begin{tikzpicture}
+    % overlay=false explicitly: the panel is positioned from its bounding box,
+    % so it breaks if the document sets \tikzstyle{every picture}+=[overlay],
+    % which decks ported from beamer commonly do.
+    \begin{tikzpicture}[overlay=false, remember picture=false]
       \useasboundingbox (0,0) rectangle (\linewidth,-\textheight);
       \fill[TrantorDark]
         (-\Gm@lmargin, \paperheight)
