@@ -1,5 +1,5 @@
 % trantor.sty -- a Metropolis-style theme for the ltx-talk class.
-% LuaLaTeX only. Fonts: Libertinus Serif/Sans (text) + Euler (maths).
+% LuaLaTeX only. Fonts: Libertinus Serif/Sans (text) + Libertinus Math.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{trantor}[2026-08-01 v1.0 Metropolis-like theme for ltx-talk]
 
@@ -15,9 +15,10 @@
 \renewcommand{\familydefault}{\sfdefault}
 \linespread{1.18}
 \newfontfamily\headerfont{Libertinus Sans}[Ligatures=TeX]
-% Maths: Euler (lum-euler, a lua-unicode-math package; needs v0.9+). Change this
-% line for a different maths font, e.g. lum-libertinus.
-\RequirePackage{lum-euler}
+% Maths: Libertinus Math, matching the text and shipped with TeX Live. Change
+% the \setmathfont line for a different maths font.
+\RequirePackage{unicode-math}
+\setmathfont{Libertinus Math}
 \makeatletter
 
 % Tighten the space around display maths -- the default 11pt reads as a big gap
