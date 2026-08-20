@@ -44,6 +44,14 @@ The second pass fills in the table of contents on the section pages.
   the title page omits it.
 - **Title spacing.** Use `\stitle{...}` instead of `\frametitle{...}` on dense
   slides to keep a clear gap below the title.
+- **Standout pages.** `\standout{...}` sets a line on a full-bleed dark
+  panel, left out of the frame numbering; `\standoutline{...}` is the same
+  emphasis inside a normal frame.
+- **Bare pages.** Frames without a `\frametitle` get no header band, and
+  `\plainpage` at the top of a frame also drops the progress bar and frame
+  number -- made for full-bleed images.
+- **Backup slides.** Frames after `\appendix` are numbered among themselves
+  and left out of the total.
 - **Tick and cross.** `\yes` and `\no` give a check mark and a cross.
 - **Reference footnote.** `\footline{...}` pins a small citation to the
   bottom-left of the slide.

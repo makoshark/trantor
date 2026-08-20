@@ -26,7 +26,7 @@
 
 \begin{frame}
 \frametitle{A normal slide}
-  Body text is Libertinus Serif; titles are Libertinus Sans; maths uses Euler.
+  Body text is Libertinus Serif; titles are Libertinus Sans; maths is Libertinus Math.
   \begin{itemize}
     \item A point with \textbf{bold} and \emph{emphasis}.
     \item Inline maths sits comfortably in the text: $\sum_i p_i = 1$.
@@ -57,6 +57,48 @@
   \end{itemize}
 
   \footline{(Clauser, Horne, Shimony, Holt, \emph{Phys.~Rev.~Lett.}~1969)}
+\end{frame}
+
+% \standout puts a line on a full-bleed dark panel. Standout pages stay out of
+% the frame numbering, as metropolis kept them.
+\standout{A standout panel}
+
+\begin{frame}
+\frametitle{Emphasis}
+  \alert{Alerted text} takes the accent colour, and quotations are set in
+  italic, both as under beamer:
+  \begin{quote}
+    The best way to predict the future is to invent it.
+  \end{quote}
+  \standoutline{A standout line, for emphasis inside a normal frame.}
+\end{frame}
+
+% A frame with no \frametitle gets no header band -- made for full-bleed
+% images. \plainpage also drops the progress bar and frame number, giving a
+% completely bare page.
+\begin{frame}
+  \plainpage
+  \begin{tikzpicture}[remember picture, overlay]
+    \fill[accent!12] (current page.south west) rectangle (current page.north east);
+    \node at (current page.center) {\Large An untitled, \texttt{\textbackslash plainpage} frame: no header, no footer.};
+  \end{tikzpicture}
+\end{frame}
+
+% \maketitle, \sectionpage, and \standout also work inside a frame you open
+% yourself, following beamer, so extras can sit alongside them.
+\section{The end}
+\begin{frame}
+  \sectionpage
+  \footline{A \texttt{\textbackslash footline} next to an in-frame \texttt{\textbackslash sectionpage}.}
+\end{frame}
+
+% Frames after \appendix are numbered among themselves and left out of the
+% total. The counts settle on the second run.
+\appendix
+
+\begin{frame}
+\frametitle{A backup slide}
+  Appendix frames restart the count: this page is numbered 1\,/\,1.
 \end{frame}
 
 \end{document}
