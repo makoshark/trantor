@@ -4,7 +4,7 @@ A Metropolis-style theme for the [`ltx-talk`](https://ctan.org/pkg/ltx-talk)
 presentation class: Libertinus Serif body, Libertinus Sans titles, a slim
 progress bar, and tagged PDF/UA output for accessible slides.
 
-![The title slide and an example slide](preview.png)
+![The title slide, an example slide, and a standout panel](preview.png)
 
 The [demo deck](slides.pdf) is produced by `slides.tex`.
 
