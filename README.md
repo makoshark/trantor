@@ -8,6 +8,16 @@ progress bar, and tagged PDF/UA output for accessible slides.
 
 The [demo deck](slides.pdf) is produced by `slides.tex`.
 
+## About this fork
+
+[Benjamin Mako Hill](https://mako.cc/)'s fork of
+[mrc-pop/trantor](https://github.com/mrc-pop/trantor). It follows metropolis
+more closely -- no header band on untitled frames, standout pages left out of
+the frame numbering, `\alert` in the accent colour, italic quotations -- and
+adds `\appendix`, `\subsectionpage`, `\plainpage`, title and divider
+commands that work inside an open frame, and Libertinus maths so everything
+builds on stock TeX Live.
+
 ## Requirements
 
 - **LuaLaTeX only.** XeTeX is unsupported by ltx-talk, and the fonts load through
@@ -67,9 +77,10 @@ The second pass fills in the table of contents on the section pages.
 
 ## Credits
 
-Design inspired by Matthias Vogelgesang's
-[Metropolis](https://github.com/matze/mtheme) beamer theme (CC BY-SA 4.0). This
-is an independent reimplementation for `ltx-talk`.
+trantor is by [Marco Pompili](https://github.com/mrc-pop); this fork is by
+Benjamin Mako Hill. Design inspired by Matthias Vogelgesang's
+[Metropolis](https://github.com/matze/mtheme) beamer theme (CC BY-SA 4.0), as
+an independent reimplementation for `ltx-talk`.
 
 ## License
 
