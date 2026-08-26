@@ -30,13 +30,13 @@
   \setlength\belowdisplayshortskip{5pt plus 2pt minus 1pt}%
 }
 
-% -- Colours. Set your own accent anywhere in the preamble with, e.g.,
-%      \definecolor{accent}{HTML}{BF1238}
-\providecolor{accent}{HTML}{2A7AE2}
+% -- Colours. TrantorAccent is the one meant to be changed; set it with
+% \trantorset (see the options block below). TrantorDark and TrantorMuted are
+% the theme's own and can be \colorlet to taste.
+\definecolor{TrantorAccent}{HTML}{2A7AE2}
 \colorlet{TrantorDark}{black}
 % Lightest grey that still meets WCAG AA contrast (4.5:1) on white (~4.54:1).
 \definecolor{TrantorMuted}{HTML}{767676}  % affiliation, footline, arxiv
-\AddToHook{begindocument}{\colorlet{TrantorAccent}{accent}}
 
 % itemize/enumerate labels in black rather than the class default
 \AddToHook{begindocument}{\colorlet{structure}{black}}
@@ -91,17 +91,40 @@
 \newif\iftrantorPlainPage
 \trantorPlainPagefalse
 
+% -- Appendix. Backup slides after \appendix go on counting up while the
+% denominator stays at the number of content slides, so three extras on a
+% 15-slide talk read 16/15, 17/15, 18/15 with the bar pinned full. The count
+% reaches the denominator through the .aux, so it settles on the second pass
+% like any cross-reference.
+\newcommand{\trantor@setcontentframes}[1]{\gdef\trantor@contentframes{#1}}
+
+% \immediate, so the value written is the counter here and not at the next
+% shipout, which would already include the first backup slide.
+\NewDocumentCommand\appendix{}{%
+  \immediate\write\@auxout{\string\trantor@setcontentframes{\trantorFrameNumber}}%
+}
+
 \AddToHook{shipout/foreground}{%
   \iftrantorPlainPage\else
   \trantorArtifactBegin
+  % Denominator: the content-slide count recorded by \appendix if there was one,
+  % otherwise the total on the last page. \let rather than expansion, so pgfmath
+  % and the node below see a plain number either way.
+  \ifdefined\trantor@contentframes
+    \let\trantor@d\trantor@contentframes
+  \else
+    \let\trantor@d\trantorFrameTotal
+  \fi
   \begin{tikzpicture}[remember picture, overlay]
-    \pgfmathsetmacro{\trantorratio}{(\@totalframes > 0) ? (\theframe / \@totalframes) : 0}%
+    % min(..., 1) so an appendix slide pins the bar full instead of drawing past
+    % the page edge.
+    \pgfmathsetmacro{\trantorratio}{(\trantor@d > 0) ? min(\trantorFrameNumber / \trantor@d, 1) : 0}%
     \fill[TrantorAccent]
       (current page.south west)
       rectangle
       ([xshift=\trantorratio\paperwidth, yshift=1pt] current page.south west);
     \node[anchor=south east, inner sep=5pt, font=\tiny, text=TrantorDark]
-      at (current page.south east) {\theframe\,/\,\@totalframes};
+      at (current page.south east) {\trantorFrameNumber\,/\,\trantor@d};
   \end{tikzpicture}%
   \trantorArtifactEnd
   \fi
@@ -129,6 +152,62 @@
 \cs_new_protected:Npn \trantorArtifactEnd
   { \cs_if_exist:NT \tag_resume:n { \tag_resume:n { trantor } } }
 
+% -- Options. \trantorset works in the preamble or mid-document: the keys only
+% set state, which is read when a slide is typeset.
+%
+%   accent-html = BF1238         accent colour from a hex string
+%   accent      = blue!60!black  accent colour from any xcolor expression
+%   numbering   = content        (default) title and divider slides consume no
+%                                number, so it reads "content slide k of n"
+%   numbering   = all            count every slide, so the number tracks the
+%                                PDF page
+%
+% Two accent keys rather than one that guesses: a bare hex string cannot be told
+% apart from a colour name, since words like "decade" are also valid hex.
+\bool_new:N \g__trantor_uncount_bool
+
+\keys_define:nn { trantor }
+  {
+    accent      .code:n = \colorlet{TrantorAccent}{#1} ,
+    accent-html .code:n = \definecolor{TrantorAccent}{HTML}{#1} ,
+    numbering .choice: ,
+    numbering / content .code:n = \bool_gset_true:N  \g__trantor_uncount_bool ,
+    numbering / all     .code:n = \bool_gset_false:N \g__trantor_uncount_bool ,
+  }
+\keys_set:nn { trantor } { numbering = content }
+
+\NewDocumentCommand \trantorset { m } { \keys_set:nn { trantor } {#1} }
+
+% The theme keeps its own frame number rather than adjusting ltx-talk's. The
+% class counter also names each frame's hyperref anchor, so decrementing it made
+% several frames claim the same destination ("Label 'frame.1' multiply
+% defined"). This counts once per frame, not once per page, so overlays of one
+% frame keep sharing a number.
+\int_new:N \g__trantor_frame_int
+
+\cs_new_protected:Npn \trantorFrameBegin
+  {
+    \legacy_if:nTF { trantorPlainPage }
+      { \bool_if:NF \g__trantor_uncount_bool { \int_gincr:N \g__trantor_frame_int } }
+      { \int_gincr:N \g__trantor_frame_int }
+  }
+\AddToHook { env / frame / begin } { \trantorFrameBegin }
+
+\cs_new:Npn \trantorFrameNumber { \int_use:N \g__trantor_frame_int }
+
+% The total, recorded on the last page the way ltx-talk records its own.
+\property_new:nnnn { trantorframes } { shipout } { -1 }
+  { \int_use:N \g__trantor_frame_int }
+\AddToHook { enddocument / afterlastpage }
+  { \property_record:nn { trantorlast } { trantorframes } }
+\cs_new:Npn \trantorFrameTotal { \property_ref:nn { trantorlast } { trantorframes } }
+
+% Set while typesetting an \outlinepage, where no entry is the "current" one and
+% everything is printed at full opacity.
+\bool_new:N \g__trantor_outline_bool
+\cs_new_protected:Npn \trantorOutlineBegin { \bool_gset_true:N  \g__trantor_outline_bool }
+\cs_new_protected:Npn \trantorOutlineEnd   { \bool_gset_false:N \g__trantor_outline_bool }
+
 % Soften the dimming of inactive TOC entries on the section page (0.2 -> 0.7).
 % ltx-talk exposes no key for this yet, so we override the class-private
 % \__talk_toc_dest:w. Revisit if a supported interface appears or the internal
@@ -136,15 +215,19 @@
 \cs_set_protected:Npn \__talk_toc_dest:w #1 . #2 . #3 . #4 . #5 \q_stop #6
   {
     \bool_lazy_or:nnTF
+      { \g__trantor_outline_bool }
       {
-        \bool_lazy_and_p:nn
-          { \int_compare_p:nNn { \value { section } } = {#2} }
-          { \int_compare_p:nNn { \value { subsection } } = 0 }
-       }
-       {
-         \bool_lazy_and_p:nn
-           { \int_compare_p:nNn { \value { section } } = {#2} }
-           { \int_compare_p:nNn { \value { subsection } } = {#3} }
+        \bool_lazy_or_p:nn
+          {
+            \bool_lazy_and_p:nn
+              { \int_compare_p:nNn { \value { section } } = {#2} }
+              { \int_compare_p:nNn { \value { subsection } } = 0 }
+          }
+          {
+            \bool_lazy_and_p:nn
+              { \int_compare_p:nNn { \value { section } } = {#2} }
+              { \int_compare_p:nNn { \value { subsection } } = {#3} }
+          }
       }
       {#6}
       { \opacity_begin:n { 0.7 } #6 \opacity_end: }
@@ -157,11 +240,13 @@
     {\includegraphics[height=1.4cm, alt={Organisation logo}]{logo.png}}{}%
 }
 
+% Bottom-aligned: ltx-talk centres frame content by default, which leaves a
+% plain \vfill here with nothing to stretch against. The \vspace at the end is
+% then the margin below the block rather than a nudge off centre.
 \renewcommand{\maketitle}{%
   \global\trantorPlainPagetrue
-  \begin{frame}{}%
+  \begin{frame}[vertical-alignment = bottom]{}%
     \thispagestyle{plain}%
-    \vfill
     \hspace*{0.04\paperwidth}%
     \begin{minipage}{0.82\paperwidth}
       \raggedright
@@ -192,8 +277,9 @@
   \end{frame}%
 }
 
-% -- Section divider page (dark full-bleed panel with the mini-TOC).
-\NewDocumentCommand \sectionpage { } {%
+% -- The dark, full-bleed panel behind \sectionpage, \outlinepage and \standout:
+% a plain frame flooded with TrantorDark, with #1 centred on it.
+\NewDocumentCommand \trantorDarkFrame { +m } {%
   \global\trantorPlainPagetrue
   \begin{frame}{}%
     \thispagestyle{plain}%
@@ -205,43 +291,46 @@
         rectangle
         (\dimexpr\paperwidth-\Gm@lmargin\relax, -\paperheight);
       \node[text=white, anchor=center, inner sep=0pt]
-        at (0.5\linewidth, -0.5\textheight) {%
-        \begin{minipage}{\linewidth}
-          \centering
-          \setcounter{tocdepth}{1}%
-          \colorlet{structure}{white}%
-          \setlength{\parskip}{1.2em}%   spacing between TOC entries
-          \headerfont\Large
-          \tableofcontents
-        \end{minipage}%
-      };
+        at (0.5\linewidth, -0.5\textheight) {#1};
     \end{tikzpicture}%
   \end{frame}%
 }
 
-% \standout{...}: a full frame with the same dark panel as \sectionpage,
-% and the given text centred on it.
+% The mini-TOC as it appears on those panels.
+\newcommand{\trantorTOC}{%
+  \begin{minipage}{\linewidth}
+    \centering
+    \setcounter{tocdepth}{1}%
+    \colorlet{structure}{white}%
+    \setlength{\parskip}{1.2em}%   spacing between TOC entries
+    \headerfont\Large
+    \tableofcontents
+  \end{minipage}%
+}
+
+% -- Section divider page: the mini-TOC with the current section highlighted
+% (the other entries are dimmed by the \__talk_toc_dest:w override above).
+\NewDocumentCommand \sectionpage { } {\trantorDarkFrame{\trantorTOC}}
+
+% -- Outline page: the same panel and TOC, but with no current section to pick
+% out, so every entry is printed in full white. Meant for the overview slide
+% after the title page, or between parts of a long talk.
+\NewDocumentCommand \outlinepage { } {%
+  \trantorOutlineBegin
+  \trantorDarkFrame{\trantorTOC}%
+  \trantorOutlineEnd
+}
+
+% \standout{...}: a full frame with the same dark panel, and the given text
+% centred on it.
 \NewDocumentCommand \standout { +m } {%
-  \global\trantorPlainPagetrue
-  \begin{frame}{}%
-    \thispagestyle{plain}%
-    \noindent
-    \begin{tikzpicture}
-      \useasboundingbox (0,0) rectangle (\linewidth,-\textheight);
-      \fill[TrantorDark]
-        (-\Gm@lmargin, \paperheight)
-        rectangle
-        (\dimexpr\paperwidth-\Gm@lmargin\relax, -\paperheight);
-      \node[text=white, anchor=center, inner sep=0pt]
-        at (0.5\linewidth, -0.5\textheight) {%
-        \begin{minipage}{0.8\linewidth}
-          \centering
-          \headerfont\LARGE\bfseries
-          #1
-        \end{minipage}%
-      };
-    \end{tikzpicture}%
-  \end{frame}%
+  \trantorDarkFrame{%
+    \begin{minipage}{0.8\linewidth}
+      \centering
+      \headerfont\LARGE\bfseries
+      #1
+    \end{minipage}%
+  }%
 }
 
 \makeatother

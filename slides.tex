@@ -1,17 +1,14 @@
 % Draft build (fast). For the accessible, tagged PDF/UA-2 version, comment this
-% line, uncomment the block below it, and run lualatex twice.
+% line, uncomment the block below it, and run lualatex three times.
 \DocumentMetadata{}
 %\DocumentMetadata{tagging=on, pdfstandard=ua-2, lang=en-GB,
 %  tagging-setup={math/setup={mathml-SE,mathml-AF}, math/alt/use}}
 
-\documentclass{ltx-talk}  % add [handout] to flatten overlays while editing
-\usepackage{trantor}             % sets all fonts: Libertinus text + Euler maths
+\documentclass{ltx-talk} % add [handout] to flatten overlays while editing
+\usepackage{trantor}
 
-% Accent colour (progress bar + the rule under the title).
-\definecolor{accent}{HTML}{2A7AE2}
-
-\usepackage{tikz}
-\usetikzlibrary{positioning, calc, arrows.meta}
+% Accent colour
+\trantorset{accent-html = 2A7AE2}
 
 \title{The trantor theme}
 \author{Your Name}
@@ -21,6 +18,9 @@
 \begin{document}
 
 \maketitle
+
+% \outlinepage shows an outline in white, centered text
+\outlinepage
 
 \section{Introduction}\sectionpage
 
@@ -41,15 +41,15 @@
 \stitle{A fuller slide}
   \begin{itemize}
       \item \texttt{trantor} is a customisation of the
-         \href{https://ctan.org/pkg/ltx-talk}{\textcolor{accent}{\texttt{ltx-talk}}} class.
+         \href{https://ctan.org/pkg/ltx-talk}{\textcolor{TrantorAccent}{\texttt{ltx-talk}}} class.
       \item Its look is freely inspired by the
-         \href{https://ctan.org/pkg/beamertheme-metropolis}{\textcolor{accent}{\texttt{metropolis}}} beamer theme.
+         \href{https://ctan.org/pkg/beamertheme-metropolis}{\textcolor{TrantorAccent}{\texttt{metropolis}}} beamer theme.
       \item Section names on each \texttt{\textbackslash sectionpage} are clickable.
       \item Swap \texttt{\textbackslash frametitle} for
          \texttt{\textbackslash stitle} on dense slides to have more
          space below the title.
        \item Example display math: \[
-         \langle A_0 B_0 \rangle + \langle A_0 B_1\rangle + 
+         \langle A_0 B_0 \rangle + \langle A_0 B_1\rangle +
          \langle A_1 B_0\rangle - \langle A_1 B_1\rangle \le 2 .
          \]
        \item Numerals \& symbols: 0123456789 \yes\ \no.
