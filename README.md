@@ -12,45 +12,64 @@ trantor needs LuaLaTeX, with a recent TeX Live or MacTeX carrying the Libertinus
 fonts and `lua-unicode-math` v0.9+.
 
 Copy `trantor.sty` (and a `logo.png` if you want one) next to your document and
-compile twice, so the second pass can fill in the table of contents on the
-section pages:
+compile twice:
 
 ```sh
 lualatex slides.tex
 lualatex slides.tex
 ```
 
-`slides.tex` is a short [demo deck](slides.pdf) to strip down into your own.
+`slides.tex` is a short [demo deck](slides.pdf) that can be edited into your
+own.
+
+## Options
+
+Give them to the package, or to `\trantorset`, which also works mid-document:
+
+```latex
+\usepackage[accent-html = 2A7AE2, divider = title]{trantor}
+\trantorset{accent = blue!60!black}
+```
+
+| Key | What it does |
+| --- | --- |
+| `accent-html = 2A7AE2` | accent colour from a hex string |
+| `accent = blue!60!black` | accent colour from any xcolor expression |
+| `numbering = content` | *(default)* the title and divider slides are not numbered, only the "actual content" is |
+| `numbering = all` | every slide is numbered |
+| `divider = toc` | *(default)* `\sectionpage` is a dark slide with the table of contents and the current section highlighted |
+| `divider = title` | `\sectionpage` names only the current section, over a progress bar |
+| `header = light` | *(default)* frame titles on the page background |
+| `header = dark` | frame titles inside a dark band |
+| `appendix = overrun` | *(default)* backup slides count past the total, e.g. 16/15, 17/15 |
+| `appendix = restart` | backup slides are numbered among themselves, e.g. 1/3, 2/3 |
+
+`header` is read once at `\begin{document}`, so it should be set in the
+preamble. The others can be changed at any point.
 
 ## Customising
 
-- **Accent colour**: the progress bar and the rule under the title. Set it with
-  `\trantorset`, from a hex string or from any xcolor expression:
-  ```latex
-  \trantorset{accent-html = 2A7AE2}
-  \trantorset{accent = blue!60!black}
-  ```
-- **Slide numbers**: the title and divider slides consume no number, so the
-  counter reads "content slide k of n". `\trantorset{numbering = all}` counts
-  every slide instead.
-- **Logo**: a `logo.png` beside your slides appears on the title page, which
-  otherwise omits it. Redefine `\titlelogo` for a different file.
+- **Title page**: `\subtitle{...}` sits under the title, and a `logo.png` beside
+  your slides appears on the right. Redefine `\titlelogo` for a different file.
 - **Maths font**: Euler by default. Change the `\RequirePackage{lum-euler}` line
   in `trantor.sty` for another.
 - **Title spacing**: use `\stitle{...}` instead of `\frametitle{...}` on dense
   slides to keep a clear gap below the title.
-- **Divider slides**: `\sectionpage` puts the table of contents on a dark slide,
-  the current section picked out and the rest dimmed; `\outlinepage` is the same
-  with every entry in full white, for an overview after the title page or
-  between parts of a long talk; `\standout{...}` puts a single line of text on
-  that slide instead.
+- **Divider slides**: `\sectionpage` and `\subsectionpage` follow the `divider`
+  option; `\outlinepage` puts the table of contents on a dark slide with every
+  entry in full white, for an overview after the title page or between parts of
+  a long talk; `\standout{...}` puts a single line of text on that slide
+  instead.
 - **Emphasis**: `\standoutline{...}` centres a line in the title font on the
   current slide.
 - **Reference footnote**: `\footline{...}` pins a small citation to the
   bottom-left of the slide, and `\arxiv{1508.05949}` tags a statement with a
   small grey link to the abstract.
-- **Other**: `\yes` and `\no` give a check mark and a cross. `\appendix` starts
-  the backup slides, which by default overcount past the total.
+- **Backup slides**: `\appendix` starts them, and the `appendix` option decides
+  how they are numbered.
+- **Colours**: `TrantorAccent` is the one meant to change; `TrantorDark`,
+  `TrantorLight` and `TrantorMuted` can be redefined after loading the package.
+- **Other**: `\yes` and `\no` give a check mark and a cross.
 
 ## Building
 
@@ -59,6 +78,8 @@ lualatex slides.tex
   `slides.tex` for the tagged block below it, then compile three times. Give
   every figure an `alt={...}` description so it passes PDF/UA. The rest is
   handled by ltx-talk.
+
+You can also use `ltx-talk`'s `handout` option.
 
 ## Credits
 
