@@ -65,6 +65,8 @@ preamble. The others can be changed at any point.
 - **Reference footnote**: `\footline{...}` pins a small citation to the
   bottom-left of the slide, and `\arxiv{1508.05949}` tags a statement with a
   small grey link to the abstract.
+- **Plain slides**: `\plainpage` hides the progress bar and frame number on a
+  frame, as the title page and the dark panels do. Useful for a full-bleed image.
 - **Backup slides**: `\appendix` starts them, and the `appendix` option decides
   how they are numbered.
 - **Colours**: `TrantorAccent` is the one meant to change; `TrantorDark`,

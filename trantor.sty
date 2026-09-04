@@ -316,6 +316,19 @@
   { \property_record:nn { trantorlast } { trantorframes } }
 \cs_new:Npn \trantorFrameTotal { \property_ref:nn { trantorlast } { trantorframes } }
 
+% \plainpage: suppress the footer bar and frame number on a frame, as the title
+% page and the dark panels do; for a full-bleed image slide, say. Before
+% \begin{frame} it marks the coming frame, the way the theme's own plain pages
+% do, and \trantorFrameBegin sees the flag. Inside a frame the count has already
+% been taken, so the number is given back when the frame would not have counted.
+\NewDocumentCommand \plainpage { }
+  {
+    \global\trantorPlainPagetrue
+    \thispagestyle{plain}
+    \bool_lazy_and:nnT { \l__talk_frame_bool } { \g__trantor_uncount_bool }
+      { \int_gdecr:N \g__trantor_frame_int }
+  }
+
 % Set while typesetting an \outlinepage, where no entry is the "current" one and
 % everything is printed at full opacity.
 \bool_new:N \g__trantor_outline_bool
