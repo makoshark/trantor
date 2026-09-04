@@ -35,22 +35,45 @@
 % the theme's own and can be \colorlet to taste.
 \definecolor{TrantorAccent}{HTML}{2A7AE2}
 \colorlet{TrantorDark}{black}
+\colorlet{TrantorLight}{white}
 % Lightest grey that still meets WCAG AA contrast (4.5:1) on white (~4.54:1).
 \definecolor{TrantorMuted}{HTML}{767676}  % affiliation, footline, arxiv
 
-% itemize/enumerate labels in black rather than the class default
-\AddToHook{begindocument}{\colorlet{structure}{black}}
+% itemize/enumerate labels in the body colour rather than the class default
+\AddToHook{begindocument}{\colorlet{structure}{TrantorDark}}
+
+% State for the two look options; see the \trantorset block below. Plain \newif
+% rather than expl3 bools, so the \AddToHook bodies here can read them directly.
+\newif\iftrantor@darkheader  \trantor@darkheaderfalse
+\newif\iftrantor@titledivider \trantor@titledividerfalse
 
 % -- Header bar carrying the frame title (hidden on plain pages).
 \AddToHook{begindocument}{%
-  \EditInstance{header}{std}{
-    background-color  = white,
-    color             = black,
-    print-frame-title = true,
-    height            = 30pt,
-    font              = \headerfont\bfseries,
-    left-hspace       = \dimexpr\Gm@lmargin - 0.6cm\relax,
-  }%
+  \iftrantor@darkheader
+    % headsep is what pads under the title; the height key alone only pads above,
+    % and the band needs the extra room to breathe. geometry has to be told the
+    % new size too: the class sets the header's height to \Gm@tmargin + \headsep,
+    % so leaving headheight at its 10mm default overflows every text block by
+    % about 1.5pt.
+    \geometry{headheight=30pt, headsep=10pt}%
+    \EditInstance{header}{std}{
+      background-color  = TrantorDark,
+      color             = TrantorLight,
+      print-frame-title = true,
+      height            = 40pt,
+      font              = \headerfont\bfseries,
+      left-hspace       = \dimexpr\Gm@lmargin - 0.6cm\relax,
+    }%
+  \else
+    \EditInstance{header}{std}{
+      background-color  = TrantorLight,
+      color             = TrantorDark,
+      print-frame-title = true,
+      height            = 30pt,
+      font              = \headerfont\bfseries,
+      left-hspace       = \dimexpr\Gm@lmargin - 0.6cm\relax,
+    }%
+  \fi
   \EditInstance{footer}{std}{element-order = {}}%
   \EditInstance{frametitle}{header}{after-vspace = 6mm minus 3mm}%
 }
@@ -104,29 +127,51 @@
   \immediate\write\@auxout{\string\trantor@setcontentframes{\trantorFrameNumber}}%
 }
 
-\AddToHook{shipout/foreground}{%
-  \iftrantorPlainPage\else
-  \trantorArtifactBegin
+% How far through the talk we are, as \trantorratio, with \trantor@d left set to
+% the denominator for the counter to print. Shared by the footer bar and
+% \trantorProgressBar.
+\newcommand\trantor@setratio{%
   % Denominator: the content-slide count recorded by \appendix if there was one,
   % otherwise the total on the last page. \let rather than expansion, so pgfmath
-  % and the node below see a plain number either way.
+  % and the counter node see a plain number either way.
   \ifdefined\trantor@contentframes
     \let\trantor@d\trantor@contentframes
   \else
     \let\trantor@d\trantorFrameTotal
   \fi
+  % The guard has to be a \ifnum rather than pgfmath's ?:, which evaluates both
+  % branches and so still divides by a zero denominator. That happens on the
+  % first pass, before the total is known, and in a deck whose \appendix comes
+  % before any content slide.
+  \ifnum\numexpr\trantor@d\relax>0
+    % min(..., 1) so an appendix slide pins the bar full instead of drawing past
+    % the page edge.
+    \pgfmathsetmacro{\trantorratio}{min(\trantorFrameNumber / \trantor@d, 1)}%
+  \else
+    \def\trantorratio{0}%
+  \fi
+}
+
+% \trantorProgressBar{<width>}: a rule of the given width, accent-coloured up to
+% the current position and pale the rest of the way. Used by the title divider.
+\newlength\trantor@barwidth
+\newlength\trantor@barfill
+
+\NewDocumentCommand \trantorProgressBar { m } {%
+  \setlength\trantor@barwidth{#1}%
+  \trantor@setratio
+  % dimen = <factor><dimen>, so \trantorratio scales the width
+  \setlength\trantor@barfill{\trantorratio\trantor@barwidth}%
+  \textcolor{TrantorAccent}{\rule{\trantor@barfill}{0.6pt}}%
+  \textcolor{TrantorDark!20}{%
+    \rule{\dimexpr\trantor@barwidth-\trantor@barfill\relax}{0.6pt}}%
+}
+
+\AddToHook{shipout/foreground}{%
+  \iftrantorPlainPage\else
+  \trantorArtifactBegin
+  \trantor@setratio
   \begin{tikzpicture}[remember picture, overlay]
-    % The guard has to be a \ifnum rather than pgfmath's ?:, which evaluates both
-    % branches and so still divides by a zero denominator. That happens on the
-    % first pass, before the total is known, and in a deck whose \appendix comes
-    % before any content slide.
-    \ifnum\numexpr\trantor@d\relax>0
-      % min(..., 1) so an appendix slide pins the bar full instead of drawing past
-      % the page edge.
-      \pgfmathsetmacro{\trantorratio}{min(\trantorFrameNumber / \trantor@d, 1)}%
-    \else
-      \def\trantorratio{0}%
-    \fi
     \fill[TrantorAccent]
       (current page.south west)
       rectangle
@@ -152,6 +197,21 @@
 \cs_new_protected:Npn \__trantor_print_section: { \tl_use:N \g__trantor_section_tl }
 \cs_set_eq:NN \trantorSectionTitle \__trantor_print_section:
 
+% Likewise the subsection, for \subsectionpage. Cleared when a new section
+% starts, so a stale title cannot leak into the next one.
+\tl_new:N \g__trantor_subsection_tl
+
+\AddToHook{section/begin}{ \tl_gclear:N \g__trantor_subsection_tl }
+
+\AddToHook{subsection/begin}{
+  \cs_if_exist:NT \l__talk_subsection_tl {
+    \tl_gset:NV \g__trantor_subsection_tl \l__talk_subsection_tl
+  }
+}
+
+\cs_new_protected:Npn \__trantor_print_subsection: { \tl_use:N \g__trantor_subsection_tl }
+\cs_set_eq:NN \trantorSubsectionTitle \__trantor_print_subsection:
+
 % Suspend tagging around the theme's decorative / pagination graphics when
 % tagging is on (a no-op otherwise), so the progress bar and frame counter stay
 % out of the structure tree instead of being flagged as loose content.
@@ -169,9 +229,18 @@
 %                                number, so it reads "content slide k of n"
 %   numbering   = all            count every slide, so the number tracks the
 %                                PDF page
+%   divider     = toc            (default) \sectionpage is the dark panel with
+%                                the mini-TOC, current section picked out
+%   divider     = title          \sectionpage names only the current section,
+%                                over a progress bar on the light background
+%   header      = light          (default) frame titles on the page background
+%   header      = dark           frame titles in a dark band
 %
 % Two accent keys rather than one that guesses: a bare hex string cannot be told
 % apart from a colour name, since words like "decade" are also valid hex.
+%
+% divider and header are read when a slide is typeset and at \begin{document}
+% respectively, so set header in the preamble; divider may be switched mid-talk.
 \bool_new:N \g__trantor_uncount_bool
 
 \keys_define:nn { trantor }
@@ -181,8 +250,14 @@
     numbering .choice: ,
     numbering / content .code:n = \bool_gset_true:N  \g__trantor_uncount_bool ,
     numbering / all     .code:n = \bool_gset_false:N \g__trantor_uncount_bool ,
+    divider .choice: ,
+    divider / toc   .code:n = \global\trantor@titledividerfalse ,
+    divider / title .code:n = \global\trantor@titledividertrue ,
+    header .choice: ,
+    header / light .code:n = \global\trantor@darkheaderfalse ,
+    header / dark  .code:n = \global\trantor@darkheadertrue ,
   }
-\keys_set:nn { trantor } { numbering = content }
+\keys_set:nn { trantor } { numbering = content, divider = toc, header = light }
 
 \NewDocumentCommand \trantorset { m } { \keys_set:nn { trantor } {#1} }
 
@@ -259,6 +334,16 @@
     \begin{minipage}{0.82\paperwidth}
       \raggedright
       {\color{TrantorDark}\headerfont\Large\bfseries \@title\par}%
+      % \@subtitle is only defined if the class provides \subtitle, and only
+      % non-empty if the document set one.
+      \ifdefined\@subtitle
+        \ifx\@subtitle\empty\else
+          \vspace{0.35em}%
+          % Serif (the body family), not \headerfont: Libertinus Sans is used
+          % bold throughout, so a light sans subtitle would be the odd one out.
+          {\color{TrantorDark}\large \@subtitle\par}%
+        \fi
+      \fi
       \vspace{0.5em}%
       {\color{TrantorAccent}\rule{\linewidth}{0.8pt}\par}%
       \vspace{1.3em}%
@@ -298,7 +383,7 @@
         (-\Gm@lmargin, \paperheight)
         rectangle
         (\dimexpr\paperwidth-\Gm@lmargin\relax, -\paperheight);
-      \node[text=white, anchor=center, inner sep=0pt]
+      \node[text=TrantorLight, anchor=center, inner sep=0pt]
         at (0.5\linewidth, -0.5\textheight) {#1};
     \end{tikzpicture}%
   \end{frame}%
@@ -309,16 +394,62 @@
   \begin{minipage}{\linewidth}
     \centering
     \setcounter{tocdepth}{1}%
-    \colorlet{structure}{white}%
+    \colorlet{structure}{TrantorLight}%
     \setlength{\parskip}{1.2em}%   spacing between TOC entries
     \headerfont\Large
     \tableofcontents
   \end{minipage}%
 }
 
-% -- Section divider page: the mini-TOC with the current section highlighted
-% (the other entries are dimmed by the \__talk_toc_dest:w override above).
-\NewDocumentCommand \sectionpage { } {\trantorDarkFrame{\trantorTOC}}
+% -- The divider used by "divider = title": the section name over a progress
+% bar, on the ordinary light background. Deliberately not a plain page -- it
+% carries a number and the footer bar, so it reads as part of the talk.
+\NewDocumentCommand \trantor@divider { +m } {%
+  \begin{frame}{}%
+    \thispagestyle{plain}%
+    \centering
+    \begin{minipage}{0.52\linewidth}%
+      \raggedright
+      {\headerfont\Large\bfseries\color{TrantorDark}\trantorSectionTitle\par}%
+      \vspace{0.4em}%
+      \trantorProgressBar{\linewidth}%
+      #1%
+    \end{minipage}%
+    \par
+  \end{frame}%
+}
+
+% -- Section divider page. By default the mini-TOC with the current section
+% picked out (the rest dimmed by the \__talk_toc_dest:w override above);
+% under "divider = title", the section name alone over a progress bar.
+\NewDocumentCommand \sectionpage { } {%
+  \iftrantor@titledivider
+    \trantor@divider{}%
+  \else
+    \trantorDarkFrame{\trantorTOC}%
+  \fi
+}
+
+% -- Subsection divider page: the section title above the subsection it
+% introduces, following whichever divider style is set.
+\NewDocumentCommand \subsectionpage { } {%
+  \iftrantor@titledivider
+    \trantor@divider{%
+      \par\vspace{0.8em}%
+      {\headerfont\large\bfseries\color{TrantorDark}\trantorSubsectionTitle\par}%
+    }%
+  \else
+    \trantorDarkFrame{%
+      \begin{minipage}{0.8\linewidth}
+        \centering
+        \headerfont\bfseries
+        {\large\trantorSectionTitle\par}
+        \vspace{0.7em}
+        {\LARGE\trantorSubsectionTitle\par}
+      \end{minipage}%
+    }%
+  \fi
+}
 
 % -- Outline page: the same panel and TOC, but with no current section to pick
 % out, so every entry is printed in full white. Meant for the overview slide
