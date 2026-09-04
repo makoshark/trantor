@@ -220,8 +220,10 @@
 \cs_new_protected:Npn \trantorArtifactEnd
   { \cs_if_exist:NT \tag_resume:n { \tag_resume:n { trantor } } }
 
-% -- Options. \trantorset works in the preamble or mid-document: the keys only
-% set state, which is read when a slide is typeset.
+% -- Options. Every key below can be given either as a package option,
+%   \usepackage[accent-html = BF1238, divider = title]{trantor}
+% or through \trantorset, which works in the preamble or mid-document: the keys
+% only set state, which is read when a slide is typeset.
 %
 %   accent-html = BF1238         accent colour from a hex string
 %   accent      = blue!60!black  accent colour from any xcolor expression
@@ -316,6 +318,12 @@
       { \opacity_begin:n { 0.7 } #6 \opacity_end: }
   }
 \ExplSyntaxOff
+
+% The same keys are accepted as package options, so a deck can be configured
+% declaratively:  \usepackage[accent-html = BF1238, divider = title]{trantor}
+% Processed after the defaults set above, so an option overrides them, and
+% \trantorset still works afterwards for anything you want to change mid-talk.
+\ProcessKeyOptions[trantor]
 
 % -- Title page. Drop a logo.png next to your slides, or redefine \titlelogo.
 \newcommand{\titlelogo}{%
