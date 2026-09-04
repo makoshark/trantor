@@ -55,6 +55,9 @@ preamble. The others can be changed at any point.
   in `trantor.sty` for another.
 - **Title spacing**: use `\stitle{...}` instead of `\frametitle{...}` on dense
   slides to keep a clear gap below the title.
+- **Inside your own frame**: `\maketitle`, the divider commands and `\standout`
+  typeset in the current frame if there is one, so a `\note` or a `\footline` can
+  sit alongside them; called between frames they open their own.
 - **Divider slides**: `\sectionpage` and `\subsectionpage` follow the `divider`
   option; `\outlinepage` puts the table of contents on a dark slide with every
   entry in full white, for an overview after the title page or between parts of
