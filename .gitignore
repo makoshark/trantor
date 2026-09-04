@@ -29,5 +29,5 @@ _*.pdf
 .texpadtmp/
 _*.png
 
-# private notes
-ROADMAP.md
+# private notes and local test builds
+private/
