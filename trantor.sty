@@ -116,9 +116,17 @@
     \let\trantor@d\trantorFrameTotal
   \fi
   \begin{tikzpicture}[remember picture, overlay]
-    % min(..., 1) so an appendix slide pins the bar full instead of drawing past
-    % the page edge.
-    \pgfmathsetmacro{\trantorratio}{(\trantor@d > 0) ? min(\trantorFrameNumber / \trantor@d, 1) : 0}%
+    % The guard has to be a \ifnum rather than pgfmath's ?:, which evaluates both
+    % branches and so still divides by a zero denominator. That happens on the
+    % first pass, before the total is known, and in a deck whose \appendix comes
+    % before any content slide.
+    \ifnum\numexpr\trantor@d\relax>0
+      % min(..., 1) so an appendix slide pins the bar full instead of drawing past
+      % the page edge.
+      \pgfmathsetmacro{\trantorratio}{min(\trantorFrameNumber / \trantor@d, 1)}%
+    \else
+      \def\trantorratio{0}%
+    \fi
     \fill[TrantorAccent]
       (current page.south west)
       rectangle
