@@ -9,15 +9,6 @@
 \RequirePackage{tikz}
 \RequirePackage{pifont}
 
-% -- Fonts.
-% Text: Libertinus Serif (body) and Libertinus Sans (titles).
-\setsansfont{Libertinus Serif}[Scale=1.05]
-\renewcommand{\familydefault}{\sfdefault}
-\linespread{1.18}
-\newfontfamily\headerfont{Libertinus Sans}[Ligatures=TeX]
-% Maths: Euler (lum-euler, a lua-unicode-math package; needs v0.9+). Change this
-% line for a different maths font, e.g. lum-libertinus.
-\RequirePackage{lum-euler}
 \makeatletter
 
 % Tighten the space around display maths -- the default 11pt reads as a big gap
@@ -445,6 +436,16 @@
 % Processed after the defaults set above, so an option overrides them, and
 % \trantorset still works afterwards for anything you want to change mid-talk.
 \ProcessKeyOptions[trantor]
+
+% -- Fonts.
+% Text: Libertinus Serif (body) and Libertinus Sans (titles).
+\setsansfont{Libertinus Serif}[Scale=1.05]
+\renewcommand{\familydefault}{\sfdefault}
+\linespread{1.18}
+\newfontfamily\headerfont{Libertinus Sans}[Ligatures=TeX]
+% Maths: Euler (lum-euler, a lua-unicode-math package; needs v0.9+). Change this
+% line for a different maths font, e.g. lum-libertinus.
+\RequirePackage{lum-euler}
 
 % -- Title page. Drop a logo.png next to your slides, or redefine \titlelogo.
 \newcommand{\titlelogo}{%
