@@ -6,6 +6,17 @@ progress bar, and tagged PDF/UA output for accessible slides.
 
 ![The title slide and an example slide](preview.png)
 
+## About this fork
+
+[Benjamin Mako Hill](https://mako.cc/)'s fork of
+[mrc-pop/trantor](https://github.com/mrc-pop/trantor), carrying options that are
+open as pull requests upstream or waiting to be sent. Each follows metropolis or
+suits decks ported from beamer, and each is off by default, so a deck written for
+upstream trantor renders identically here: `untitled = bare`, `quotes = italic`,
+`alert`, `fonts = document`, `links = final`, `logo = fill`, `column-sep`, and
+`numbering = none`. It also adds `\plainpage` and lets the title page, dividers
+and panels run inside a frame you open yourself.
+
 ## Getting started
 
 trantor needs LuaLaTeX, with a recent TeX Live or MacTeX carrying the Libertinus
