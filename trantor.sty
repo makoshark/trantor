@@ -154,6 +154,85 @@
   \href{https://arxiv.org/abs/#1}{{\headerfont\scriptsize\color{TrantorMuted}arXiv:#1}}%
 }
 
+% -- Under a non-zero "column-sep", put a gutter back between columns.
+%
+% The class separates columns with \hfil inside a row built to exactly
+% \textwidth, so the gutter is whatever width the author leaves unclaimed.
+% beamer instead built the row at \textwidth plus both side margins, so two
+% \begin{column}{0.5\textwidth} both fitted and still got a gutter, paid for out
+% of the margins. Decks ported from beamer ask for columns summing to the full
+% width and come out touching.
+%
+% Take the gutter out of the columns rather than widening the row past the text
+% block, which would leave the first column hanging left of the frame title: the
+% row still measures \textwidth, but \textwidth inside it is \trantorColumnSep
+% narrower, so columns asking for a share of it leave exactly that much for one
+% separator. The separator shrinks but does not stretch, so three or more
+% columns summing to the full width share the one separator's worth between them
+% rather than overflowing.
+%
+% The default, column-sep = 0pt, is the class's own layout.
+%
+% Both environments are the class's own, rebuilt with those two changes. A hook
+% cannot do it: env/columns/begin fires early enough that the total-width key
+% captures the already-narrowed \textwidth, so the row shrinks with the columns
+% and no gutter appears.
+\newdimen\trantorColumnSep
+\trantorColumnSep=0pt
+
+\ExplSyntaxOn
+\RenewDocumentEnvironment { columns } { D <> { all } O { } }
+  {
+    \__talk_action_begin:n {#1}
+    \par
+    \int_set_eq:NN \l__talk_column_int \g__talk_column_int
+    \int_gzero:N \g__talk_column_int
+    \keys_set:nn { talk / columns } {#2}
+    \hbox_set_to_wd:Nnw \l__talk_tmp_box { \l__talk_columns_wd_tl }
+      \dim_set:Nn \textwidth
+        { \l__talk_columns_wd_tl - \trantorColumnSep }
+      \dim_set_eq:NN \columnwidth \textwidth
+      \ignorespaces
+  }
+  {
+      \unskip
+    \hbox_set_end:
+    \box_use_drop:N \l__talk_tmp_box
+    \int_gset_eq:NN \g__talk_column_int \l__talk_column_int
+    \par
+    \__talk_action_end:
+  }
+
+\RenewDocumentEnvironment { column } { D <> { all } O { } m }
+  {
+    \par
+    \int_gincr:N \g__talk_column_int
+    \int_compare:nNnF \g__talk_column_int = 1
+      {
+        \hfil
+        \hskip \trantorColumnSep plus 0pt minus \trantorColumnSep \relax
+      }
+    \keys_set:nn { talk / column } {#2}
+    \vbox_set_to_wd:Nnw \l__talk_tmp_box {#3}
+      \dim_set:Nn \textwidth {#3}
+      \dim_set_eq:NN \columnwidth \textwidth
+      \@parboxrestore
+      \leavevmode
+      \raggedright
+      \__talk_action_begin:n {#1}
+      \ignorespaces
+  }
+  {
+      \par
+      \__talk_action_end:
+    \vbox_set_end:
+    \use:c { __talk_column_align_ \l__talk_column_alignment_tl :n }
+      { \vbox_unpack_drop:N \l__talk_tmp_box }
+    \par
+    \@ignoretrue
+  }
+\ExplSyntaxOff
+
 % -- Bottom progress bar + frame counter (hidden on plain pages).
 \newif\iftrantorPlainPage
 \trantorPlainPagefalse
@@ -309,6 +388,9 @@
 %   fonts       = theme          (default) Libertinus Serif and Sans, Euler maths
 %   fonts       = document       the theme sets no faces; the document loads its
 %                                own with fontspec and its own maths font
+%   column-sep  = 24pt           gutter between columns; 0pt (the default) is
+%                                the class's layout, where the gutter is
+%                                whatever width the columns leave unclaimed
 %   appendix    = overrun        (default) backup slides keep counting past the
 %                                total, 16/15, 17/15, with the bar pinned full
 %   appendix    = restart        backup slides are numbered among themselves,
@@ -345,6 +427,7 @@
     fonts .choice: ,
     fonts / theme    .code:n = \global\trantor@documentfontsfalse ,
     fonts / document .code:n = \global\trantor@documentfontstrue ,
+    column-sep  .code:n = { \dim_set:Nn \trantorColumnSep {#1} } ,
     appendix .choice: ,
     appendix / overrun .code:n = \global\trantor@restartfalse ,
     appendix / restart .code:n = \global\trantor@restarttrue ,

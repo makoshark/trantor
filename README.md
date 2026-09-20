@@ -48,6 +48,7 @@ Give them to the package, or to `\trantorset`, which also works mid-document:
 | `quotes = italic` | `quote` and `quotation` in italic, as under beamer |
 | `fonts = theme` | *(default)* Libertinus Serif and Sans, Euler maths |
 | `fonts = document` | the theme sets no faces; the document loads its own with fontspec, and its own maths font |
+| `column-sep = 24pt` | gutter between columns; `0pt` (the default) is the class's layout, where the gutter is whatever the columns leave unclaimed |
 | `appendix = overrun` | *(default)* backup slides count past the total, e.g. 16/15, 17/15 |
 | `appendix = restart` | backup slides are numbered among themselves, e.g. 1/3, 2/3 |
 
