@@ -48,6 +48,7 @@
 \newif\iftrantor@documentfonts \trantor@documentfontsfalse
 \newif\iftrantor@finallinks   \trantor@finallinksfalse
 \newif\iftrantor@shownumber  \trantor@shownumbertrue
+\newif\iftrantor@filllogo    \trantor@filllogofalse
 \newif\iftrantor@italicquotes \trantor@italicquotesfalse
 \newif\iftrantor@bareuntitled \trantor@bareuntitledfalse
 
@@ -434,6 +435,9 @@
 %   fonts       = theme          (default) Libertinus Serif and Sans, Euler maths
 %   fonts       = document       the theme sets no faces; the document loads its
 %                                own with fontspec and its own maths font
+%   logo        = fixed          (default) \titlelogo at a fixed 1.4cm height
+%   logo        = fill           \titlelogo fills its column, height capped at
+%                                0.32\paperheight, aspect ratio kept
 %   links       = all            (default) links are kept on every slide
 %   links       = final          a link is kept only on the last slide of its
 %                                frame, where under tag-slides=n it is not an
@@ -482,6 +486,9 @@
     fonts / theme    .code:n = \global\trantor@documentfontsfalse ,
     fonts / document .code:n = \global\trantor@documentfontstrue ,
     column-sep  .code:n = { \dim_set:Nn \trantorColumnSep {#1} } ,
+    logo .choice: ,
+    logo / fixed .code:n = \global\trantor@filllogofalse ,
+    logo / fill  .code:n = \global\trantor@filllogotrue ,
     links .choice: ,
     links / all   .code:n = \global\trantor@finallinksfalse ,
     links / final .code:n = \global\trantor@finallinkstrue ,
@@ -498,6 +505,7 @@
     quotes = upright,
     fonts = theme,
     links = all,
+    logo = fixed,
     appendix = overrun,
   }
 
@@ -613,9 +621,18 @@
 \fi
 
 % -- Title page. Drop a logo.png next to your slides, or redefine \titlelogo.
+% Under "logo = fill" the logo takes the width of the column it sits in rather
+% than a fixed height, capped so a tall one cannot overrun the title block. A
+% wide, short logo -- a wordmark, say -- is tiny at a fixed height, because the
+% height is doing all the work and the width follows the aspect ratio.
 \newcommand{\titlelogo}{%
   \IfFileExists{logo.png}
-    {\includegraphics[height=1.4cm, alt={Organisation logo}]{logo.png}}{}%
+    {\iftrantor@filllogo
+       \includegraphics[width=\linewidth, height=0.32\paperheight,
+         keepaspectratio, alt={Organisation logo}]{logo.png}%
+     \else
+       \includegraphics[height=1.4cm, alt={Organisation logo}]{logo.png}%
+     \fi}{}%
 }
 
 % Bottom-aligned: ltx-talk centres frame content by default, which leaves a

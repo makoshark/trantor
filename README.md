@@ -52,6 +52,8 @@ Give them to the package, or to `\trantorset`, which also works mid-document:
 | `column-sep = 24pt` | gutter between columns; `0pt` (the default) is the class's layout, where the gutter is whatever the columns leave unclaimed |
 | `links = all` | *(default)* links are kept on every slide |
 | `links = final` | a link is kept only on the last slide of its frame, where under `tag-slides=n` it is not an artifact; the text stays on the others |
+| `logo = fixed` | *(default)* `\titlelogo` at a fixed 1.4cm height |
+| `logo = fill` | `\titlelogo` fills its column, height capped at `0.32\paperheight`, aspect ratio kept |
 | `appendix = overrun` | *(default)* backup slides count past the total, e.g. 16/15, 17/15 |
 | `appendix = restart` | backup slides are numbered among themselves, e.g. 1/3, 2/3 |
 
