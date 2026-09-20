@@ -46,6 +46,7 @@
 % Set by \appendix itself, so the counter knows which side of it a slide is on.
 \newif\iftrantor@inappendix   \trantor@inappendixfalse
 \newif\iftrantor@documentfonts \trantor@documentfontsfalse
+\newif\iftrantor@finallinks   \trantor@finallinksfalse
 \newif\iftrantor@italicquotes \trantor@italicquotesfalse
 \newif\iftrantor@bareuntitled \trantor@bareuntitledfalse
 
@@ -153,6 +154,47 @@
 \NewDocumentCommand\arxiv{m}{%
   \href{https://arxiv.org/abs/#1}{{\headerfont\scriptsize\color{TrantorMuted}arXiv:#1}}%
 }
+
+% -- Under "links = final", a link is kept only on the last slide of its frame.
+%
+% With the class's default tag-slides=n, every slide of a frame but the last is
+% an artifact, and a link annotation inside an artifact fails PDF/UA-2 (8.2.5.20)
+% wherever it came from -- this theme's furniture or the document's own text.
+% Dropping the link on those slides, keeping its text, is the only way to stay
+% compliant without tagging every slide, which would put every half-built state
+% of a frame into the structure tree.
+%
+% The class has no overlay keyword for "last", so the test is the one the class
+% uses itself, via the property it records per frame.
+\ExplSyntaxOn
+\prg_new_conditional:Npnn \__trantor_if_final_slide: { TF }
+  {
+    \exp_args:Ne \tl_if_blank:nTF
+      { \property_ref:ee { frame . \int_use:N \g__talk_frame_int } { slides } }
+      { \prg_return_true: }
+      {
+        \int_compare:nNnTF { \g__talk_slide_int } =
+          { \property_ref:ee { frame . \int_use:N \g__talk_frame_int } { slides } }
+          { \prg_return_true: } { \prg_return_false: }
+      }
+  }
+\NewDocumentCommand \trantorIfFinalSlide { +m +m }
+  { \__trantor_if_final_slide:TF {#1} {#2} }
+% \let \href to this to keep a link's text and drop the link.
+\NewDocumentCommand \trantorNoHref { m m } { #2 }
+
+% The class's per-slide hook covers the theme's furniture and the document's own
+% text alike. It ends by opening the slide box, so appending to it puts the
+% assignment inside that box, where it is restored with it. Appended rather than
+% copied, so the class's own body is whatever the installed release defines.
+\cs_new_eq:NN \__trantor_slide_begin: \__talk_slide_begin:
+\cs_gset_protected:Npn \__talk_slide_begin:
+  {
+    \__trantor_slide_begin:
+    \legacy_if:nT { trantor@finallinks }
+      { \trantorIfFinalSlide {} { \cs_set_eq:NN \href \trantorNoHref } }
+  }
+\ExplSyntaxOff
 
 % -- Under a non-zero "column-sep", put a gutter back between columns.
 %
@@ -388,6 +430,10 @@
 %   fonts       = theme          (default) Libertinus Serif and Sans, Euler maths
 %   fonts       = document       the theme sets no faces; the document loads its
 %                                own with fontspec and its own maths font
+%   links       = all            (default) links are kept on every slide
+%   links       = final          a link is kept only on the last slide of its
+%                                frame, where under tag-slides=n it is not an
+%                                artifact; the text stays on the others
 %   column-sep  = 24pt           gutter between columns; 0pt (the default) is
 %                                the class's layout, where the gutter is
 %                                whatever width the columns leave unclaimed
@@ -428,6 +474,9 @@
     fonts / theme    .code:n = \global\trantor@documentfontsfalse ,
     fonts / document .code:n = \global\trantor@documentfontstrue ,
     column-sep  .code:n = { \dim_set:Nn \trantorColumnSep {#1} } ,
+    links .choice: ,
+    links / all   .code:n = \global\trantor@finallinksfalse ,
+    links / final .code:n = \global\trantor@finallinkstrue ,
     appendix .choice: ,
     appendix / overrun .code:n = \global\trantor@restartfalse ,
     appendix / restart .code:n = \global\trantor@restarttrue ,
@@ -440,6 +489,7 @@
     untitled = band,
     quotes = upright,
     fonts = theme,
+    links = all,
     appendix = overrun,
   }
 
