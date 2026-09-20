@@ -132,11 +132,20 @@
 
 % \footline{...}: a small reference or citation pinned to the bottom-left of
 % the slide. Overlaid, so it can go anywhere inside the frame.
-\NewDocumentCommand\footline{m}{%
+\newcommand\trantor@footlinepic[1]{%
   \begin{tikzpicture}[remember picture, overlay]
     \node[anchor=south west, xshift=1ex, yshift=0.7ex, font=\scriptsize, text=TrantorMuted]
       at (current page.south west) {#1};
   \end{tikzpicture}%
+}
+\NewDocumentCommand\footline{m}{%
+  \ifvmode
+    \nointerlineskip
+    \vbox to 0pt{\vss\hbox to 0pt{\trantor@footlinepic{#1}\hss}}%
+    \nointerlineskip
+  \else
+    \trantor@footlinepic{#1}%
+  \fi
 }
 
 % \arxiv{1306.5001}: a small, grey "arXiv:<id>" tag linked to the abstract.
