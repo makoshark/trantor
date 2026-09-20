@@ -42,6 +42,11 @@
 % itemize/enumerate labels in the body colour rather than the class default
 \AddToHook{begindocument}{\colorlet{structure}{TrantorDark}}
 
+% Under "quotes = italic", quote and quotation are set in italic, as beamer did;
+% decks ported from it are written expecting that.
+\AddToHook{env/quote/begin}{\iftrantor@italicquotes\itshape\fi}
+\AddToHook{env/quotation/begin}{\iftrantor@italicquotes\itshape\fi}
+
 % State for the two look options; see the \trantorset block below. Plain \newif
 % rather than expl3 bools, so the \AddToHook bodies here can read them directly.
 \newif\iftrantor@darkheader   \trantor@darkheaderfalse
@@ -51,6 +56,7 @@
 \newif\iftrantor@inappendix   \trantor@inappendixfalse
 % Cleared by "numbering = none": the progress bar stays, the k/n beside it goes.
 \newif\iftrantor@shownumber    \trantor@shownumbertrue
+\newif\iftrantor@italicquotes \trantor@italicquotesfalse
 \newif\iftrantor@bareuntitled \trantor@bareuntitledfalse
 \newif\iftrantor@filllogo      \trantor@filllogofalse
 
@@ -320,6 +326,8 @@
 %   logo        = fixed          (default) \titlelogo at a fixed 1.4cm height
 %   logo        = fill           \titlelogo fills its column, height capped at
 %                                0.32\paperheight, aspect ratio kept
+%   quotes      = upright        (default) quote and quotation in the body face
+%   quotes      = italic         quote and quotation in italic, as under beamer
 %   appendix    = overrun        (default) backup slides keep counting past the
 %                                total, 16/15, 17/15, with the bar pinned full
 %   appendix    = restart        backup slides are numbered among themselves,
@@ -356,6 +364,9 @@
     logo .choice: ,
     logo / fixed .code:n = \global\trantor@filllogofalse ,
     logo / fill  .code:n = \global\trantor@filllogotrue ,
+    quotes .choice: ,
+    quotes / upright .code:n = \global\trantor@italicquotesfalse ,
+    quotes / italic  .code:n = \global\trantor@italicquotestrue ,
     appendix .choice: ,
     appendix / overrun .code:n = \global\trantor@restartfalse ,
     appendix / restart .code:n = \global\trantor@restarttrue ,
@@ -367,6 +378,7 @@
     header = light,
     untitled = band,
     logo = fixed,
+    quotes = upright,
     appendix = overrun,
   }
 

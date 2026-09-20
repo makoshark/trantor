@@ -47,6 +47,8 @@ Give them to the package, or to `\trantorset`, which also works mid-document:
 | `logo = fixed` | *(default)* `\titlelogo` at a fixed 1.4cm height |
 | `logo = fill` | `\titlelogo` fills its column, height capped at `0.32\paperheight`, aspect ratio kept |
 | `alert = TrantorAccent` | colour of `\alert`, from any xcolor expression; the class's red unless set |
+| `quotes = upright` | *(default)* `quote` and `quotation` in the body face |
+| `quotes = italic` | `quote` and `quotation` in italic, as under beamer |
 | `appendix = overrun` | *(default)* backup slides count past the total, e.g. 16/15, 17/15 |
 | `appendix = restart` | backup slides are numbered among themselves, e.g. 1/3, 2/3 |
 
