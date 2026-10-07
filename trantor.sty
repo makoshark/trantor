@@ -298,12 +298,21 @@
 % defined"). This counts once per frame, not once per page, so overlays of one
 % frame keep sharing a number.
 \int_new:N \g__trantor_frame_int
+% Whether the current frame took a number, so \plainpage gives it back at most
+% once -- the frame body runs again for every overlay.
+\bool_new:N \g__trantor_counted_bool
 
 \cs_new_protected:Npn \trantorFrameBegin
   {
     \legacy_if:nTF { trantorPlainPage }
-      { \bool_if:NF \g__trantor_uncount_bool { \int_gincr:N \g__trantor_frame_int } }
-      { \int_gincr:N \g__trantor_frame_int }
+      {
+        \bool_gset_false:N \g__trantor_counted_bool
+        \bool_if:NF \g__trantor_uncount_bool { \int_gincr:N \g__trantor_frame_int }
+      }
+      {
+        \bool_gset_true:N \g__trantor_counted_bool
+        \int_gincr:N \g__trantor_frame_int
+      }
   }
 \AddToHook { env / frame / begin } { \trantorFrameBegin }
 
@@ -315,6 +324,23 @@
 \AddToHook { enddocument / afterlastpage }
   { \property_record:nn { trantorlast } { trantorframes } }
 \cs_new:Npn \trantorFrameTotal { \property_ref:nn { trantorlast } { trantorframes } }
+
+% \plainpage: suppress the footer bar and frame number on a frame, as the title
+% page and the dark panels do; for a full-bleed image slide, say. Before
+% \begin{frame} it marks the coming frame, the way the theme's own plain pages
+% do, and \trantorFrameBegin sees the flag. Inside a frame the count has already
+% been taken, so the number is given back when the frame would not have counted.
+\NewDocumentCommand \plainpage { }
+  {
+    \global\trantorPlainPagetrue
+    \thispagestyle{plain}
+    \bool_lazy_all:nT
+      { { \l__talk_frame_bool } { \g__trantor_uncount_bool } { \g__trantor_counted_bool } }
+      {
+        \int_gdecr:N \g__trantor_frame_int
+        \bool_gset_false:N \g__trantor_counted_bool
+      }
+  }
 
 % Set while typesetting an \outlinepage, where no entry is the "current" one and
 % everything is printed at full opacity.
