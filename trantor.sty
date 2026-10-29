@@ -52,6 +52,7 @@
 % Cleared by "numbering = none": the progress bar stays, the k/n beside it goes.
 \newif\iftrantor@shownumber    \trantor@shownumbertrue
 \newif\iftrantor@bareuntitled \trantor@bareuntitledfalse
+\newif\iftrantor@filllogo      \trantor@filllogofalse
 
 % -- Header bar carrying the frame title (hidden on plain pages).
 \AddToHook{begindocument}{%
@@ -314,6 +315,9 @@
 %   untitled    = band           (default) frames with no \frametitle still
 %                                carry the (empty) header band
 %   untitled    = bare           frames with no \frametitle get no band
+%   logo        = fixed          (default) \titlelogo at a fixed 1.4cm height
+%   logo        = fill           \titlelogo fills its column, height capped at
+%                                0.32\paperheight, aspect ratio kept
 %   appendix    = overrun        (default) backup slides keep counting past the
 %                                total, 16/15, 17/15, with the bar pinned full
 %   appendix    = restart        backup slides are numbered among themselves,
@@ -346,6 +350,9 @@
     untitled .choice: ,
     untitled / band .code:n = \global\trantor@bareuntitledfalse ,
     untitled / bare .code:n = \global\trantor@bareuntitledtrue ,
+    logo .choice: ,
+    logo / fixed .code:n = \global\trantor@filllogofalse ,
+    logo / fill  .code:n = \global\trantor@filllogotrue ,
     appendix .choice: ,
     appendix / overrun .code:n = \global\trantor@restartfalse ,
     appendix / restart .code:n = \global\trantor@restarttrue ,
@@ -356,6 +363,7 @@
     divider = toc,
     header = light,
     untitled = band,
+    logo = fixed,
     appendix = overrun,
   }
 
@@ -470,9 +478,18 @@
 \ProcessKeyOptions[trantor]
 
 % -- Title page. Drop a logo.png next to your slides, or redefine \titlelogo.
+% Under "logo = fill" the logo takes the width of the column it sits in rather
+% than a fixed height, capped so a tall one cannot overrun the title block. A
+% wide one -- a wordmark, say -- runs out of its column and off the page at a
+% fixed height, since the width follows from the height and the aspect ratio.
 \newcommand{\titlelogo}{%
   \IfFileExists{logo.png}
-    {\includegraphics[height=1.4cm, alt={Organisation logo}]{logo.png}}{}%
+    {\iftrantor@filllogo
+       \includegraphics[width=\linewidth, height=0.32\paperheight,
+         keepaspectratio, alt={Organisation logo}]{logo.png}%
+     \else
+       \includegraphics[height=1.4cm, alt={Organisation logo}]{logo.png}%
+     \fi}{}%
 }
 
 % Bottom-aligned: ltx-talk centres frame content by default, which leaves a
